@@ -1,5 +1,8 @@
 import Image from 'next/image'
 import { Revalia } from 'next/font/google';
+import * as fs from 'fs';
+import { parse } from 'csv-parse';
+import * as path from 'path';
 /** import variable with email and password */
 
 export default function Home() {
@@ -77,15 +80,58 @@ export default function Home() {
     }
   }
 
-  function formatCSV(data) {
+  function readCsv(filename: string) {
+    type Applications = {
+      company: string;
+      position: string;
+      app_date: Date;
+      status: string;
+    }
 
-    //
+    const csvFilePath = path.resolve(__dirname, 'files/${filename}.csv');
+
+    const headers = ['name', 'country', 'subCountry', 'geoNameId'];
+
+    const fileContent = fs.readFileSync(csvFilePath, { encoding: 'utf-8' });
+
+    parse(fileContent, {
+      delimiter: ',',
+      columns: headers,
+    }, (error, result: Applications[]) => {
+      if (error) {
+        console.error(error);
+      }
+      console.log("Result", result);
+      return result
+    });
+
   }
+
+  function formatCsv(readData: [], data: [], filename: string) {
+    // process data from scrapeEmail
+    
+    /*  
+    company name:
+      
+    */
+
+    // update entries in csv file
+    /* if company name already in readData
+          update date and status columns based on the above processed data
+        else
+          add it to the readData variable
+    
+    once above two done, descending order the readData var
+    write readData to the given file name
+    */
+  }
+  
 
   // pass is using app password via the google 2 step verification setup
   return (
     <main>
       {ScrapeEmail('darren.jiang135@gmail.com', 'bfhf pvtr yqyw tkmy')}
+      {readCsv('apply_track')}
     </main>
   )
 }
