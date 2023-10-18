@@ -3,6 +3,7 @@ import { Revalia } from 'next/font/google';
 import * as fs from 'fs';
 import { parse } from 'csv-parse';
 import * as path from 'path';
+import { filter } from '../files/filter_list';
 /** import variable with email and password */
 
 export default function Home() {
@@ -36,8 +37,10 @@ export default function Home() {
                   // const {from, subject, textAsHtml, text} = parsed;
                   // return only necessary values
                   const dict = {
-                    date: parsed.date,
-                    text: parsed.text
+                    "from": parsed.from,
+                    "date": parsed.date,
+                    "subject": parsed.subject,
+                    "text": parsed.text
                   }
                   
                   data.push(dict)
@@ -90,7 +93,7 @@ export default function Home() {
 
     const csvFilePath = path.resolve(__dirname, 'files/${filename}.csv');
 
-    const headers = ['name', 'country', 'subCountry', 'geoNameId'];
+    const headers = ['company_name', 'date_last_updated', 'status'];
 
     const fileContent = fs.readFileSync(csvFilePath, { encoding: 'utf-8' });
 
@@ -107,13 +110,30 @@ export default function Home() {
 
   }
 
-  function formatCsv(readData: [], data: [], filename: string) {
+  function formatCsv(readData: [], data: [], filename: string, filter) {
     // process data from scrapeEmail
-    
-    /*  
-    company name:
-      
-    */
+    var updated_data = []
+
+    data.forEach(entry => {
+      if (entry["from"] != "Indeed"){
+         const temp = {
+           "company": determineCompany(entry),
+           "position": determinePos(entry),
+           "app_date": entry["date"],
+           'status': determineStatus(entry, filter)
+         }
+
+         updated_data.push(temp)
+      }
+
+    })
+
+    // list of all names already in the csv
+    var ind = 0
+    var companies = []
+    readData.forEach(application => {
+      companies.push(application["company_name"])
+    })
 
     // update entries in csv file
     /* if company name already in readData
@@ -124,6 +144,32 @@ export default function Home() {
     once above two done, descending order the readData var
     write readData to the given file name
     */
+
+  }
+
+  function determineCompany(entry: {}) {
+    // if sender is a no-reply type email
+    if (entry["from"] == "no-reply") {
+      // if subject contains "to"
+      if (entry["subject"].contains("to")) {
+        // return the substring after the space after to
+        return entry["subject"].split("to ")[1]
+      }
+      // else:
+      else {
+        // return substring after the "your" and until "application"
+        return entry["subject"].split("your ")[1].split(" application")[0]
+      }
+    }
+
+    else {
+      return entry["from"]
+    }
+
+  }
+
+  function determinePos(entry: {}) {
+
   }
   
 
