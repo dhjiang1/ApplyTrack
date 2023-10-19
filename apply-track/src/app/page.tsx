@@ -3,7 +3,7 @@ import { Revalia } from 'next/font/google';
 import * as fs from 'fs';
 import { parse } from 'csv-parse';
 import * as path from 'path';
-import { filter } from '../files/filter_list';
+import { filterStatus, filterPos } from '../files/filter_list';
 /** import variable with email and password */
 
 export default function Home() {
@@ -37,7 +37,7 @@ export default function Home() {
                   // const {from, subject, textAsHtml, text} = parsed;
                   // return only necessary values
                   const dict = {
-                    "from": parsed.from,
+                    "from": parsed.from.value,
                     "date": parsed.date,
                     "subject": parsed.subject,
                     "text": parsed.text
@@ -93,7 +93,7 @@ export default function Home() {
 
     const csvFilePath = path.resolve(__dirname, 'files/${filename}.csv');
 
-    const headers = ['company_name', 'date_last_updated', 'status'];
+    const headers = ['company_name', 'position', 'date_last_updated', 'status'];
 
     const fileContent = fs.readFileSync(csvFilePath, { encoding: 'utf-8' });
 
@@ -120,7 +120,7 @@ export default function Home() {
            "company": determineCompany(entry),
            "position": determinePos(entry),
            "app_date": entry["date"],
-           'status': determineStatus(entry, filter)
+           "status": determineStatus(entry, filter)
          }
 
          updated_data.push(temp)
@@ -149,7 +149,7 @@ export default function Home() {
 
   function determineCompany(entry: {}) {
     // if sender is a no-reply type email
-    if (entry["from"] == "no-reply") {
+    if (entry["from"].address.contains("no-reply")) {
       // if subject contains "to"
       if (entry["subject"].contains("to")) {
         // return the substring after the space after to
@@ -162,14 +162,36 @@ export default function Home() {
       }
     }
 
+    // if sender is not a no-reply email
     else {
-      return entry["from"]
+      // if value.name is not empty
+      if (entry["from"].name) {
+        // return the name
+        return entry["from"].name 
+      }
+
+      // if value.name is empty
+      else {
+        // return the address it is from
+        return entry["from"].address
+      }
     }
 
   }
 
   function determinePos(entry: {}) {
+    // have it end either at Engineer (for software engineer) or Manager (for Product Manager)
+    
+  }
 
+  function determineStatus(entry: {}, filter) {
+    Object.keys(filter).forEach(key => {
+      filter[key].forEach(filt => {
+        if (entry["text"].contains(filt)) {
+          return key
+        }
+      })
+    })
   }
   
 

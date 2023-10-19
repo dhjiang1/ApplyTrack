@@ -1,5 +1,12 @@
-export const filter = {
+export const filterStatus = {
     "rejection": ["unfortunately", "we regret to inform you", "filled"],
-    "interview": ["selected", "interview", "next step"],
+    "interview": ["interview", "next step"],
     "offer": ["offer"]
 }
+
+export const filterPos = [
+    "application for ",
+    "application to ",
+    "application to the ",
+    "application for the ",
+]
